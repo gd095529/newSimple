@@ -24,7 +24,7 @@ public class NewSimple {
         Statement stmt = null;
         String url = "jdbc:mysql://localhost:3306/micom";
         String id = "root";
-        String password = "root";
+        String password = "1324";
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");// 유연한 클래스부르기
             System.out.println("드라이버 적재 성공");
@@ -53,11 +53,13 @@ public class NewSimple {
     private JTextField toperand;
     private JTextField taccumulators;
 
+    private static final int MEMORYSIZE = 100;
+
     // 100개의 메모리 슬롯과 누산기 정의
     int instructionCounter = 0;
     int current_instruction = 0;
     int accumulator = 0;
-    int memory[] = new int[100];
+    int memory[] = new int[MEMORYSIZE];
     int instructionRegister = 0;
     int operationCode = 0;
     int operand = 0;
@@ -65,26 +67,155 @@ public class NewSimple {
     int lnum = 0;
 
     // 모든 옵코드 정의
-    final int READ = 10;
-    final int WRITE = 11;
-    final int LOAD = 20;
-    final int STORE = 21;
-    final int ADD = 30;
-    final int SUBTRACT = 31;
-    final int MULTIPLY = 33;
-    final int DIVIDE = 32;
-    final int BRANCH = 40;
-    final int BRANCHNEG = 41;
-    final int BRANCHZERO = 42;
-    final int HALT = 43;
-
-
+    private static final int READ = 10;
+    private static final int WRITE = 11;
+    private static final int LOAD = 20;
+    private static final int STORE = 21;
+    private static final int ADD = 30;
+    private static final int SUBSTRACT = 31;
+    private static final int MULTIPLY = 33;
+    private static final int DIVIDE = 32;
+    private static final int BRANCH = 40;
+    private static final int BRANCHNEG = 41;
+    private static final int BRANCHZERO = 42;
+    private static final int HALT = 43;
 
     /**
      * Create the application.
      */
     public NewSimple() {
         initialize();
+    }
+
+    //메모리 화면 출력용
+    public static void printRegistersAndMemory(int accumulator,int instructionCounter
+            ,int instructionRegister, int operationCode, int operand, int[] memory) {
+        //출력
+
+        System.out.println("REGISTERS :");
+        if(accumulator>=0)
+            System.out.printf("%-25s"+"+%04d\r\n","accumulator",accumulator);
+        else
+            System.out.printf("%-25s"+"%05d\r\n","accumulator",accumulator);
+
+        System.out.printf("%-28s"+"%02d\r\n","instructionCounter",instructionCounter);
+        System.out.printf("%-25s"+"+%4d\r\n","instructionRegister",instructionRegister);
+        System.out.printf("%-28s"+"%02d\r\n","operationCode",operationCode);
+        System.out.printf("%-28s"+"%02d\r\n","operand",operand);
+        System.out.println();
+        System.out.println("MEMORY :");
+        System.out.printf("%5s"," ");
+        for(int i =0; i<10; i++) {
+            System.out.printf("%-3s%5d"," ",i);
+        }
+
+        for(int i =0,j =0; i<MEMORYSIZE; i++,j++) {
+            if(i%10==0)
+                System.out.printf("\r\n%5d",j);
+
+            if(memory[i]>=0)
+                System.out.printf("%-3s+%04d"," ",memory[i]);
+            else
+                System.out.printf("%-3s%05d"," ",memory[i]);
+        }
+        System.out.println("\r\n\r\n");
+        //출력
+    }
+
+
+    //메모리 읽어버리는 메서드
+    public void readMemory(){
+        while(true) {
+            instructionRegister = memory[instructionCounter]; //현재 실행문장
+            if(instructionRegister<0)
+                System.out.println("*** Data position Error ***");
+
+            operationCode = instructionRegister/100;//앞 2개( 명령어)
+            operand = instructionRegister%100;
+
+            switch(operationCode) {//명령어 확인
+
+                case READ :
+                    System.out.println("*** insert value, -9999<= value <= 9999 ***");
+                    //밑에 문장 스캔대신 생각 입력창 또하나 만들어야할듯??
+                    //memory[operand]=scan.nextInt();
+                    if((memory[operand]<-9999||memory[operand]>+9999)) {
+                        System.out.println("*** because out of range, Simpletron execution terminated ***");
+                        return;
+                    }
+                    break;
+
+                case WRITE :
+                    System.out.println("WRITE : "+memory[operand]+"\r\n");//데이터를
+                    break;
+
+                case LOAD :
+                    accumulator = memory[operand];//데이터를
+                    break;
+
+                case STORE :
+                    memory[operand] = accumulator; //누산기값을
+                    break;
+
+                case ADD :
+                    accumulator += memory[operand];//데이터를
+                    break;
+
+                case SUBSTRACT :
+                    accumulator -= memory[operand];//데이터를
+                    break;
+
+                case DIVIDE :
+                    if(memory[operand]==0) {//데이터가
+                        System.out.println("*** Attempt to divide by zero ***");
+
+                        return;
+                    }
+                    accumulator /= memory[operand];//데이터를
+                    break;
+
+                case MULTIPLY :
+                    accumulator *= memory[operand];//데이터를
+                    break;
+
+                case BRANCH :
+                    instructionCounter = operand;//주소값으로 이동
+                    continue;
+
+                case BRANCHNEG :
+                    if(accumulator<0) {
+                        instructionCounter = operand;//주소값으로 이동
+                        continue;
+                    }
+                    break;
+
+                case BRANCHZERO :
+                    if(accumulator == 0) {
+                        instructionCounter = operand;//다음 실행문장 주소값으로 이동
+                        continue;
+                    }
+                    break;
+
+                case HALT :
+                    //?? 여기는 메모리 보여줘야함
+//                    printRegistersAndMemory(accumulator,instructionCounter,instructionRegister
+//                            , operationCode, operand, memory);
+                    System.out.println("*** Simpletron execution terminated ***");
+
+                    return;
+
+                default :
+                    System.out.println("*** Doesn't exist operationCode ***");
+
+                    return;
+            }
+
+            //??메모리 보여주는거 다른작업끝난뒤
+//            printRegistersAndMemory(accumulator,instructionCounter,instructionRegister
+//                    , operationCode, operand, memory);
+
+            instructionCounter++;//다음 메모리 위치
+        }
     }
 
     /**
@@ -130,24 +261,40 @@ public class NewSimple {
 //         }
 //      });
 
+
+
         addB.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 log = addArea.getText();
                 try {
                     lnum = Integer.parseInt(log);
-                    if(lnum == -99999) textArea.append("\r\n***프로그램 로딩 완료***\r\n***시작하겠습니다.***\r\n");
+                    if(lnum == -99999) {
+                        textArea.append("\r\n***프로그램 로딩 완료***\r\n***시작하겠습니다.***\r\n");
+                        //메모리 다 읽어버리기??
+
+
+                        //입력 버튼 비활코드??
+
+                        //리셋버튼으로 가서 클릭하면 입력 활성화??
+                    }
                     else if(lnum< -9999 || lnum> +9999) {
-                        //초기화 작업 메서드 넣어주기
+                        //초기화 작업 메서드 넣어주기??
 
                         throw new OutOfMemoryError();
                     }
 
                     if(lnum>=0) {
-//                  log = "%02d ? +%04d", operand,log
+                        log = String.format("%02d ? +%04d\r\n", operand, lnum);
+                    }else{
+                        log = String.format("%02d ? %05d\r\n", operand, lnum);
                     }
                     textArea.append(log);
+                    memory[operand] =lnum;
+                    operand++;
+                    //값 다 넣었으면 항상 초기화??더있는지 확인
                     log = "";
+                    lnum = 0;
                     addArea.setText("");
                 }catch(Exception ex) {
                     textArea.append("\r\n정확한 값을 입력해주세요\r\n");
