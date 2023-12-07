@@ -97,7 +97,7 @@ public class NewSimple {
         viewM += String.format("%-28s"+"%02d\r\n","operationCode",operationCode);
         viewM += String.format("%-28s"+"%02d\r\n\r\n","operand",operand);
 
-        viewM += String.format("MEMORY :");
+        viewM += String.format("MEMORY :\r\n");
         viewM += String.format("%5s"," ");
         for(int i =0; i<10; i++) {
             viewM += String.format("%-3s%5d"," ",i);
@@ -135,9 +135,11 @@ public class NewSimple {
                     textArea.append("\r\n*** insert value, -9999<= value <= 9999 ***\r\n");
                     memory[operand] = Integer.parseInt(JOptionPane.showInputDialog("정수를 입력하세요:"));
                     //memory[operand]=scan.nextInt();
+
                     if((memory[operand]<-9999||memory[operand]>+9999)) {
                         textArea.append("\r\n*** because out of range, Simpletron execution terminated ***\r\n");
                         //리턴말고 모든 버튼 비활, 리셋만 활성화 해야하나??
+
                         return;
                     }
                     break;
@@ -195,8 +197,8 @@ public class NewSimple {
 
                 case HALT :
                     //?? 여기는 메모리 보여줘야함
-//                    printRegistersAndMemory(accumulator,instructionCounter,instructionRegister
-//                            , operationCode, operand, memory);
+                    printRegistersAndMemory(accumulator,instructionCounter,instructionRegister
+                            , operationCode, operand, memory);
                     textArea.append("\r\n*** Simpletron execution terminated ***\r\n");
                     return;
 
@@ -207,8 +209,8 @@ public class NewSimple {
             }
 
             //??메모리 보여주는거 다른작업끝난뒤
-//            printRegistersAndMemory(accumulator,instructionCounter,instructionRegister
-//                    , operationCode, operand, memory);
+            printRegistersAndMemory(accumulator,instructionCounter,instructionRegister
+                    , operationCode, operand, memory);
 
             //만약 branch 일경우 continue없애고 이거용 확인 변수생성, if문으로 아닌경우에만 넣기??
             instructionCounter++;//다음 메모리 위치
@@ -266,9 +268,25 @@ public class NewSimple {
                 try {
                     lnum = Integer.parseInt(log);
                     if(lnum == -99999) {
-                        textArea.append("\r\n***프로그램 로딩 완료***\r\n***시작하겠습니다.***\r\n");
-                        //메모리 다 읽어버리기??
+                        //완료했으니까 그냥 넘어가야지
+                        if(lnum>=0) {
+                            log = String.format("%02d ? +%04d\r\n", operand, lnum);
+                        }else{
+                            log = String.format("%02d ? %05d\r\n", operand, lnum);
+                        }
 
+                        textArea.append(log);
+                        memory[operand] =lnum;
+                        operand++;
+                        //값 다 넣었으면 항상 초기화??더있는지 확인
+                        log = "";
+                        lnum = 0;
+                        addArea.setText("");
+
+                        textArea.append("\r\n***프로그램 로딩 완료***\r\n***시작하겠습니다.***\r\n");
+
+                        //메모리 다 읽어버리기??
+                        readMemory();
 
                         //입력 버튼 비활코드??
 
@@ -285,6 +303,7 @@ public class NewSimple {
                     }else{
                         log = String.format("%02d ? %05d\r\n", operand, lnum);
                     }
+
                     textArea.append(log);
                     memory[operand] =lnum;
                     operand++;
