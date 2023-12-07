@@ -125,7 +125,7 @@ public class NewSimple {
 
     //메모리 읽어버리는 메서드
     public void readMemory(){
-        while(true) {
+        while(true) { //??전체적인 break, return, continue 다시생각...
             instructionRegister = memory[instructionCounter]; //현재 실행문장
             if(instructionRegister<0)
                 System.out.println("*** Data position Error ***");
@@ -140,13 +140,15 @@ public class NewSimple {
                     //밑에 문장 스캔대신 생각 입력창 또하나 만들어야할듯??
                     //memory[operand]=scan.nextInt();
                     if((memory[operand]<-9999||memory[operand]>+9999)) {
-                        System.out.println("*** because out of range, Simpletron execution terminated ***");
+                        textArea.append("\r\n*** because out of range, Simpletron execution terminated ***\r\n");
+                        //리턴말고 모든 버튼 비활, 리셋만 활성화 해야하나??
                         return;
                     }
                     break;
 
                 case WRITE :
-                    System.out.println("WRITE : "+memory[operand]+"\r\n");//데이터를
+                    //write 어떻게 표현할지 함더 생각 ??
+                    textArea.append("\r\nWRITE : "+memory[operand]+"\r\n");
                     break;
 
                 case LOAD :
@@ -167,8 +169,7 @@ public class NewSimple {
 
                 case DIVIDE :
                     if(memory[operand]==0) {//데이터가
-                        System.out.println("*** Attempt to divide by zero ***");
-
+                        textArea.append("\r\n*** Attempt to divide by zero ***\r\n");
                         return;
                     }
                     accumulator /= memory[operand];//데이터를
@@ -200,12 +201,11 @@ public class NewSimple {
                     //?? 여기는 메모리 보여줘야함
 //                    printRegistersAndMemory(accumulator,instructionCounter,instructionRegister
 //                            , operationCode, operand, memory);
-                    System.out.println("*** Simpletron execution terminated ***");
-
+                    textArea.append("\r\n*** Simpletron execution terminated ***\r\n");
                     return;
 
                 default :
-                    System.out.println("*** Doesn't exist operationCode ***");
+                    textArea.append("\r\n*** Doesn't exist operationCode ***\r\n");
 
                     return;
             }
@@ -214,6 +214,7 @@ public class NewSimple {
 //            printRegistersAndMemory(accumulator,instructionCounter,instructionRegister
 //                    , operationCode, operand, memory);
 
+            //만약 branch 일경우 continue없애고 이거용 확인 변수생성, if문으로 아닌경우에만 넣기??
             instructionCounter++;//다음 메모리 위치
         }
     }
@@ -262,7 +263,6 @@ public class NewSimple {
 //      });
 
 
-
         addB.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -298,6 +298,7 @@ public class NewSimple {
                     addArea.setText("");
                 }catch(Exception ex) {
                     textArea.append("\r\n정확한 값을 입력해주세요\r\n");
+
                 }catch(OutOfMemoryError om) {
                     textArea.append("\r\n***범위를 벗어났기 때문에 메모리를 초기화 하겠습니다.***\r\n");
                 }
