@@ -32,14 +32,13 @@ public class NewSimple {
 
     private JFrame frame;
     private JTextField addArea;
-    private JButton resultB;
     private JButton resetB;
-    private JButton debugB;
+    private JButton debugB; //클릭 동작 만들어야함??
     private JScrollPane scrollPane;
     private JTextArea textArea;
     private JTextArea resultArea;
     private JFrame debug;
-    private JFrame result;
+    //왼쪽버튼 오른쪽 버튼 이름구분 필요, 동작 버튼 필요 ??
     private JTextField tinstructionCounter;
     private JTextField tinstructionRegister;
     private JTextField toperationCode;
@@ -385,7 +384,7 @@ public class NewSimple {
         addArea.setColumns(10);
 
         JButton addB = new JButton("입력");
-//      addB.addKeyListener(new KeyAdapter() {
+//      addB.addKeyListener(new KeyAdapter() {//엔터 만들면 베스트??
 //         @Override
 //         public void keyPressed(KeyEvent e) {
 //            if (e.getKeyCode() == KeyEvent.VK_ENTER) {
@@ -414,7 +413,6 @@ public class NewSimple {
 
                         textArea.append("\r\n***프로그램 로딩 완료***\r\n***시작하겠습니다.***\r\n");
 
-                        //메모리 다 읽어버리기??
                         readMemory();
 
                         //입력 버튼 비활코드 (완료했으니 입력 비활 초기화 누르면 활성화되게)??
