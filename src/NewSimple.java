@@ -128,7 +128,7 @@ public class NewSimple {
         while(true) { //??전체적인 break, return, continue 다시생각...
             instructionRegister = memory[instructionCounter]; //현재 실행문장
             if(instructionRegister<0)
-                System.out.println("*** Data position Error ***");
+                textArea.append("*** Data position Error ***");
 
             operationCode = instructionRegister/100;//앞 2개( 명령어)
             operand = instructionRegister%100;
