@@ -10,12 +10,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
+import javax.swing.*;
 
 public class NewSimple {
     public static Connection makeDB() {
@@ -24,7 +19,7 @@ public class NewSimple {
         Statement stmt = null;
         String url = "jdbc:mysql://localhost:3306/micom";
         String id = "root";
-        String password = "1324";
+        String password = "root";
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");// 유연한 클래스부르기
             System.out.println("드라이버 적재 성공");
@@ -52,7 +47,7 @@ public class NewSimple {
     private JTextField toperationCode;
     private JTextField toperand;
     private JTextField taccumulators;
-
+    private JOptionPane JOptionpane;
     private static final int MEMORYSIZE = 100;
 
     // 100개의 메모리 슬롯과 누산기 정의
@@ -138,7 +133,7 @@ public class NewSimple {
                 case READ :
 
                     textArea.append("\r\n*** insert value, -9999<= value <= 9999 ***\r\n");
-                    //밑에 문장 스캔대신 생각 입력창 또하나 만들어야할듯??
+                    memory[operand] = Integer.parseInt(JOptionPane.showInputDialog("정수를 입력하세요:"));
                     //memory[operand]=scan.nextInt();
                     if((memory[operand]<-9999||memory[operand]>+9999)) {
                         textArea.append("\r\n*** because out of range, Simpletron execution terminated ***\r\n");
