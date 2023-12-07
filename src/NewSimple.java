@@ -225,7 +225,7 @@ public class NewSimple {
 
         frame = new JFrame();
         frame.getContentPane().setBackground(new Color(138, 43, 226));
-        frame.setBounds(100, 100, 800, 400);
+        frame.setBounds(100, 100, 800, 800);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().setLayout(null);
 
@@ -267,16 +267,16 @@ public class NewSimple {
                 log = addArea.getText();
                 try {
                     lnum = Integer.parseInt(log);
-                    if(lnum == -99999) {
+                    if (lnum == -99999) {
                         //완료했으니까 그냥 넘어가야지
-                        if(lnum>=0) {
+                        if (lnum >= 0) {
                             log = String.format("%02d ? +%04d\r\n", operand, lnum);
-                        }else{
+                        } else {
                             log = String.format("%02d ? %05d\r\n", operand, lnum);
                         }
 
                         textArea.append(log);
-                        memory[operand] =lnum;
+                        memory[operand] = lnum;
                         operand++;
                         //값 다 넣었으면 항상 초기화??더있는지 확인
                         log = "";
@@ -291,30 +291,29 @@ public class NewSimple {
                         //입력 버튼 비활코드??
 
                         //리셋버튼으로 가서 클릭하면 입력 활성화??
-                    }
-                    else if(lnum< -9999 || lnum> +9999) {
+                    } else if (lnum < -9999 || lnum > +9999) {
                         //초기화 작업 메서드 넣어주기??
 
                         throw new OutOfMemoryError();
                     }
 
-                    if(lnum>=0) {
+                    if (lnum >= 0) {
                         log = String.format("%02d ? +%04d\r\n", operand, lnum);
-                    }else{
+                    } else {
                         log = String.format("%02d ? %05d\r\n", operand, lnum);
                     }
 
                     textArea.append(log);
-                    memory[operand] =lnum;
+                    memory[operand] = lnum;
                     operand++;
                     //값 다 넣었으면 항상 초기화??더있는지 확인
                     log = "";
                     lnum = 0;
                     addArea.setText("");
-                }catch(Exception ex) {
+                } catch (Exception ex) {
                     textArea.append("\r\n정확한 값을 입력해주세요\r\n");
 
-                }catch(OutOfMemoryError om) {
+                } catch (OutOfMemoryError om) {
                     textArea.append("\r\n***범위를 벗어났기 때문에 메모리를 초기화 하겠습니다.***\r\n");
                 }
             }
@@ -326,123 +325,51 @@ public class NewSimple {
         addB.setForeground(new Color(0, 0, 0));
         frame.getContentPane().add(addB);
 
-        resultB = new JButton("결과");
-        resultB.addMouseListener(new MouseAdapter() {
+        JTextArea resultArea = new JTextArea();
+        resultArea.setBounds(12, 347, 760, 288);
+        frame.getContentPane().add(resultArea);
+
+        JButton LeftButton = new JButton("<-");
+        LeftButton.setForeground(Color.BLACK);
+        LeftButton.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+        LeftButton.setBounds(12, 701, 97, 29);
+        LeftButton.setVisible(false);
+        frame.getContentPane().add(LeftButton);
+
+        JButton RightButton = new JButton("->");
+        RightButton.setForeground(Color.BLACK);
+        RightButton.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+        RightButton.setBounds(121, 701, 97, 29);
+        RightButton.setVisible(false);
+        frame.getContentPane().add(RightButton);
+
+        JButton dbugB = new JButton("디버그");
+        dbugB.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                result = new JFrame();
-                result.getContentPane().setBackground(new Color(255, 204, 255));
-                result.setBounds(100, 100, 670, 646);
-                result.getContentPane().setLayout(null);
-                result.setVisible(true);
-
-                taccumulators = new JTextField();
-                taccumulators.setBounds(12, 35, 116, 21);
-                result.getContentPane().add(taccumulators);
-                taccumulators.setColumns(10);
-                taccumulators.setEditable(false);
-
-                tinstructionCounter = new JTextField();
-                tinstructionCounter.setColumns(10);
-                tinstructionCounter.setBounds(140, 35, 116, 21);
-                result.getContentPane().add(tinstructionCounter);
-                tinstructionCounter.setEditable(false);
-
-                tinstructionRegister = new JTextField();
-                tinstructionRegister.setColumns(10);
-                tinstructionRegister.setBounds(268, 35, 116, 21);
-                result.getContentPane().add(tinstructionRegister);
-                tinstructionRegister.setEditable(false);
-
-                toperationCode = new JTextField();
-                toperationCode.setColumns(10);
-                toperationCode.setBounds(396, 35, 116, 21);
-                result.getContentPane().add(toperationCode);
-                toperationCode.setEditable(false);
-
-                toperand = new JTextField();
-                toperand.setColumns(10);
-                toperand.setBounds(524, 35, 116, 21);
-                result.getContentPane().add(toperand);
-                toperand.setEditable(false);
-
-                JLabel lblNewLabel = new JLabel("accumulator");
-                lblNewLabel.setBounds(32, 21, 88, 15);
-                result.getContentPane().add(lblNewLabel);
-
-                JLabel lblInstructioncounter = new JLabel("instructionCounter");
-                lblInstructioncounter.setBounds(140, 21, 116, 15);
-                result.getContentPane().add(lblInstructioncounter);
-
-                JLabel lblInstructionregister = new JLabel("instructionRegister");
-                lblInstructionregister.setBounds(268, 21, 130, 15);
-                result.getContentPane().add(lblInstructionregister);
-
-                JLabel lblOperationcode = new JLabel("operationCode");
-                lblOperationcode.setBounds(411, 21, 88, 15);
-                result.getContentPane().add(lblOperationcode);
-
-                JLabel lblOperand = new JLabel("operand");
-                lblOperand.setBounds(552, 21, 88, 15);
-                result.getContentPane().add(lblOperand);
-
-                JButton btnNewButton = new JButton("<-");
-                btnNewButton.setFont(new Font("맑은 고딕", Font.BOLD, 30));
-                btnNewButton.setBounds(31, 498, 97, 67);
-                result.getContentPane().add(btnNewButton);
-
-                JButton btnNewButton_1 = new JButton("->");
-                btnNewButton_1.addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                    }
-                });
-                btnNewButton_1.setFont(new Font("맑은 고딕", Font.BOLD, 30));
-                btnNewButton.setBounds(31, 498, 97, 67);
-                result.getContentPane().add(btnNewButton);
-
-                btnNewButton_1.setBounds(140, 498, 97, 67);
-                result.getContentPane().add(btnNewButton_1);
-
-                JScrollPane scrollPane = new JScrollPane();
-                scrollPane.setBounds(22, 66, 606, 411);
-                result.getContentPane().add(scrollPane);
-
-                JTextArea resultArea = new JTextArea();
-                scrollPane.setViewportView(resultArea);
-                resultArea.setEditable(false);
+                LeftButton.setVisible(true);
+                RightButton.setVisible(true);
+                addB.setVisible(true);
             }
         });
-        resultB.setBounds(675, 308, 97, 29);
-        resultB.setFont(new Font("맑은 고딕", Font.BOLD, 16));
-        resultB.setForeground(new Color(0, 0, 0));
-        frame.getContentPane().add(resultB);
+        dbugB.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+        dbugB.setBounds(603, 645, 169, 85);
+        frame.getContentPane().add(dbugB);
 
         resetB = new JButton("초기화");
-        resetB.setBounds(566, 308, 97, 29);
+        resetB.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                LeftButton.setVisible(false);
+                RightButton.setVisible(false);
+            }
+        });
+        resetB.setBounds(412, 308, 97, 29);
         resetB.setFont(new Font("맑은 고딕", Font.BOLD, 16));
         resetB.setForeground(new Color(0, 0, 0));
         frame.getContentPane().add(resetB);
-
-        debugB = new JButton("디버그");
-        debugB.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-            }
-        });
-        debugB.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                debug = new JFrame();
-                debug.getContentPane().setBackground(new Color(138, 43, 226));
-                debug.setBounds(100, 100, 800, 600);
-                debug.getContentPane().setLayout(null);
-                debug.setVisible(true);
-            }
-        });
-        debugB.setBounds(457, 308, 97, 29);
-        debugB.setFont(new Font("맑은 고딕", Font.BOLD, 16));
-        debugB.setForeground(new Color(0, 0, 0));
-        frame.getContentPane().add(debugB);
     }
+
     /**
      * Launch the application.
      */
