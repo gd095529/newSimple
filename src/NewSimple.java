@@ -47,7 +47,7 @@ public class NewSimple {
     private JTextField toperationCode;
     private JTextField toperand;
     private JTextField taccumulators;
-    private JOptionPane JOptionpane;
+    private JTextArea resultArea;
     private static final int MEMORYSIZE = 100;
 
     // 100개의 메모리 슬롯과 누산기 정의
@@ -388,8 +388,9 @@ public class NewSimple {
                 scrollPane.setBounds(22, 66, 606, 411);
                 result.getContentPane().add(scrollPane);
 
-                JTextArea dumArea = new JTextArea();
-                scrollPane.setViewportView(dumArea);
+                JTextArea resultArea = new JTextArea();
+                scrollPane.setViewportView(resultArea);
+                resultArea.setEditable(false);
             }
         });
         resultB.setBounds(675, 308, 97, 29);
@@ -422,7 +423,6 @@ public class NewSimple {
         debugB.setFont(new Font("맑은 고딕", Font.BOLD, 16));
         debugB.setForeground(new Color(0, 0, 0));
         frame.getContentPane().add(debugB);
-
     }
     /**
      * Launch the application.
