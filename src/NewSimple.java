@@ -19,7 +19,7 @@ public class NewSimple {
         Statement stmt = null;
         String url = "jdbc:mysql://localhost:3306/micom";
         String id = "root";
-        String password = "root";
+        String password = "1324";
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");// 유연한 클래스부르기
             System.out.println("드라이버 적재 성공");
@@ -52,7 +52,6 @@ public class NewSimple {
 
     // 100개의 메모리 슬롯과 누산기 정의
     int instructionCounter = 0;
-    int current_instruction = 0;
     int accumulator = 0;
     int memory[] = new int[MEMORYSIZE];
     int instructionRegister = 0;
@@ -60,6 +59,7 @@ public class NewSimple {
     int operand = 0;
     String log = "";
     int lnum = 0;
+    String viewM = "";
 
     // 모든 옵코드 정의
     private static final int READ = 10;
@@ -83,37 +83,37 @@ public class NewSimple {
     }
 
     //메모리 화면 출력용
-    public static void printRegistersAndMemory(int accumulator,int instructionCounter
+    public void printRegistersAndMemory(int accumulator,int instructionCounter
             ,int instructionRegister, int operationCode, int operand, int[] memory) {
         //출력
-
-        System.out.println("REGISTERS :");
+        viewM = String.format("REGISTERS :\r\n");
         if(accumulator>=0)
-            System.out.printf("%-25s"+"+%04d\r\n","accumulator",accumulator);
+            viewM += String.format("%-25s"+"+%04d\r\n","accumulator",accumulator);
         else
-            System.out.printf("%-25s"+"%05d\r\n","accumulator",accumulator);
+            viewM += String.format("%-25s"+"%05d\r\n","accumulator",accumulator);
 
-        System.out.printf("%-28s"+"%02d\r\n","instructionCounter",instructionCounter);
-        System.out.printf("%-25s"+"+%4d\r\n","instructionRegister",instructionRegister);
-        System.out.printf("%-28s"+"%02d\r\n","operationCode",operationCode);
-        System.out.printf("%-28s"+"%02d\r\n","operand",operand);
-        System.out.println();
-        System.out.println("MEMORY :");
-        System.out.printf("%5s"," ");
+        viewM += String.format("%-28s"+"%02d\r\n","instructionCounter",instructionCounter);
+        viewM += String.format("%-25s"+"+%4d\r\n","instructionRegister",instructionRegister);
+        viewM += String.format("%-28s"+"%02d\r\n","operationCode",operationCode);
+        viewM += String.format("%-28s"+"%02d\r\n\r\n","operand",operand);
+
+        viewM += String.format("MEMORY :");
+        viewM += String.format("%5s"," ");
         for(int i =0; i<10; i++) {
-            System.out.printf("%-3s%5d"," ",i);
+            viewM += String.format("%-3s%5d"," ",i);
         }
 
         for(int i =0,j =0; i<MEMORYSIZE; i++,j++) {
             if(i%10==0)
-                System.out.printf("\r\n%5d",j);
+                viewM += String.format("\r\n%5d",j);
 
             if(memory[i]>=0)
-                System.out.printf("%-3s+%04d"," ",memory[i]);
+                viewM += String.format("%-3s+%04d"," ",memory[i]);
             else
-                System.out.printf("%-3s%05d"," ",memory[i]);
+                viewM += String.format("%-3s%05d"," ",memory[i]);
         }
-        System.out.println("\r\n\r\n");
+        viewM += String.format("\r\n\r\n");
+        resultArea.setText(viewM);
         //출력
     }
 
