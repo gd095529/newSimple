@@ -136,7 +136,8 @@ public class NewSimple {
             switch(operationCode) {//명령어 확인
 
                 case READ :
-                    System.out.println("*** insert value, -9999<= value <= 9999 ***");
+
+                    textArea.append("\r\n*** insert value, -9999<= value <= 9999 ***\r\n");
                     //밑에 문장 스캔대신 생각 입력창 또하나 만들어야할듯??
                     //memory[operand]=scan.nextInt();
                     if((memory[operand]<-9999||memory[operand]>+9999)) {
