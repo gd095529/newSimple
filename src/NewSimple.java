@@ -5,10 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 import javax.swing.*;
 
@@ -61,6 +58,8 @@ public class NewSimple {
     String log = "";
     int lnum = 0;
     String viewM = "";
+    boolean checkBranch = false;
+    private static Connection conn = null;
 
     // 모든 옵코드 정의
     private static final int READ = 10;
@@ -89,39 +88,60 @@ public class NewSimple {
         //출력
         viewM = String.format("REGISTERS :\r\n");
         if(accumulator>=0)
-            viewM += String.format("%-25s"+"+%04d\r\n","accumulator",accumulator);
+            viewM += String.format("%-27s"+"+%04d\r\n","accumulator",accumulator);
         else
-            viewM += String.format("%-25s"+"%05d\r\n","accumulator",accumulator);
+            viewM += String.format("%-27s"+"%05d\r\n","accumulator",accumulator);
 
-        viewM += String.format("%-28s"+"%02d\r\n","instructionCounter",instructionCounter);
+        viewM += String.format("%-31s"+"%02d\r\n","instructionCounter",instructionCounter);
         viewM += String.format("%-25s"+"+%4d\r\n","instructionRegister",instructionRegister);
         viewM += String.format("%-28s"+"%02d\r\n","operationCode",operationCode);
-        viewM += String.format("%-28s"+"%02d\r\n\r\n","operand",operand);
+        viewM += String.format("%-36s"+"%02d\r\n\r\n","operand",operand);
 
         viewM += String.format("MEMORY :\r\n");
         viewM += String.format("%5s"," ");
         for(int i =0; i<10; i++) {
-            viewM += String.format("%-3s%5d"," ",i);
+            viewM += String.format("%-4s%9d"," ",i);
         }
 
         for(int i =0,j =0; i<MEMORYSIZE; i++,j++) {
             if(i%10==0)
-                viewM += String.format("\r\n%5d",j);
+                viewM += String.format("\r\n%-2s%02d"," ",j);
 
             if(memory[i]>=0)
-                viewM += String.format("%-3s+%04d"," ",memory[i]);
+                viewM += String.format("%-4s+%04d"," ",memory[i]);
             else
-                viewM += String.format("%-3s%05d"," ",memory[i]);
+                viewM += String.format("%-4s%05d "," ",memory[i]);
         }
         viewM += String.format("\r\n\r\n");
         resultArea.setText(viewM);
         //출력
     }
 
+    //DB
+    public int selectAll(){
+        //DB connector
+        String sql = "select * from simple order by num asc";
+        conn = makeDB();
+        try {
+            PreparedStatement pstmp = conn.prepareStatement(sql);
+            ResultSet rs = pstmp.executeQuery();
+
+            while(rs.next()){
+                //음 어케넣지??
+            }
+
+        }catch (Exception exception){
+            textArea.append("DB오류");
+        }
+
+        int cnt = 0;
+        return cnt;
+    }
+
 
     //메모리 읽어버리는 메서드
     public void readMemory(){
-        while(true) { //??전체적인 break, return, continue 다시생각...
+        while(true) {
             instructionRegister = memory[instructionCounter]; //현재 실행문장
             if(instructionRegister<0)
                 textArea.append("*** Data position Error ***");
@@ -132,22 +152,18 @@ public class NewSimple {
             switch(operationCode) {//명령어 확인
 
                 case READ :
-
                     textArea.append("\r\n*** insert value, -9999<= value <= 9999 ***\r\n");
                     memory[operand] = Integer.parseInt(JOptionPane.showInputDialog("정수를 입력하세요:"));
-                    //memory[operand]=scan.nextInt();
+                    textArea.append(operand+"번 주소에 값 "+memory[operand]+"를 저장");
 
                     if((memory[operand]<-9999||memory[operand]>+9999)) {
                         textArea.append("\r\n*** because out of range, Simpletron execution terminated ***\r\n");
-                        //리턴말고 모든 버튼 비활, 리셋만 활성화 해야하나??
-
                         return;
                     }
                     break;
 
                 case WRITE :
-                    //write 어떻게 표현할지 함더 생각 ??
-                    textArea.append("\r\nWRITE : "+memory[operand]+"\r\n");
+                    textArea.append("\r\n"+operand+"번 주소의 값 출력 : "+memory[operand]+"\r\n");
                     break;
 
                 case LOAD :
@@ -180,24 +196,26 @@ public class NewSimple {
 
                 case BRANCH :
                     instructionCounter = operand;//주소값으로 이동
-                    continue;
+                    checkBranch = true;
+                    break;
 
                 case BRANCHNEG :
                     if(accumulator<0) {
                         instructionCounter = operand;//주소값으로 이동
-                        continue;
+                        checkBranch = true;
+                        break;
                     }
                     break;
 
                 case BRANCHZERO :
                     if(accumulator == 0) {
                         instructionCounter = operand;//다음 실행문장 주소값으로 이동
-                        continue;
+                        checkBranch = true;
+                        break;
                     }
                     break;
 
                 case HALT :
-                    //?? 여기는 메모리 보여줘야함
                     printRegistersAndMemory(accumulator,instructionCounter,instructionRegister
                             , operationCode, operand, memory);
                     textArea.append("\r\n*** Simpletron execution terminated ***\r\n");
@@ -205,16 +223,17 @@ public class NewSimple {
 
                 default :
                     textArea.append("\r\n*** Doesn't exist operationCode ***\r\n");
-
                     return;
             }
 
-            //??메모리 보여주는거 다른작업끝난뒤
             printRegistersAndMemory(accumulator,instructionCounter,instructionRegister
                     , operationCode, operand, memory);
-            System.out.println("일단 한번 성공");
-            //만약 branch 일경우 continue없애고 이거용 확인 변수생성, if문으로 아닌경우에만 넣기??
-            instructionCounter++;//다음 메모리 위치
+
+            if(checkBranch==false){
+                checkBranch=false;
+                instructionCounter++;//다음 메모리 위치
+            }
+
         }
     }
 
@@ -222,7 +241,6 @@ public class NewSimple {
      * Initialize the contents of the frame.
      */
     private void initialize() {
-        Connection conn = makeDB();
 
         frame = new JFrame();
         frame.getContentPane().setBackground(new Color(138, 43, 226));
@@ -269,11 +287,9 @@ public class NewSimple {
                 try {
                     lnum = Integer.parseInt(log);
                     if (lnum == -99999) {
-                        //완료했으니까 그냥 넘어가야지
-                        
                         textArea.append("데이터 저장");
+                        //초기화할것들
                         operand=0;
-                        //값 다 넣었으면 항상 초기화??더있는지 확인
                         log = "";
                         lnum = 0;
                         addArea.setText("");
@@ -283,28 +299,28 @@ public class NewSimple {
                         //메모리 다 읽어버리기??
                         readMemory();
 
-                        //입력 버튼 비활코드??
+                        //입력 버튼 비활코드 (완료했으니 입력 비활 초기화 누르면 활성화되게)??
 
-                        //리셋버튼으로 가서 클릭하면 입력 활성화??
+                        //리셋버튼으로 가서 클릭하면 입력 활성화?? 리셋 메서드 만들기
                     } else if (lnum < -9999 || lnum > +9999) {
-                        //초기화 작업 메서드 넣어주기??
+                        //입력 버튼 비활??
 
                         throw new OutOfMemoryError();
-                    }
+                    }else{
+                        if (lnum >= 0) {
+                            log = String.format("%02d ? +%04d\r\n", operand, lnum);
+                        } else {
+                            log = String.format("%02d ? %05d\r\n", operand, lnum);
+                        }
 
-                    if (lnum >= 0) {
-                        log = String.format("%02d ? +%04d\r\n", operand, lnum);
-                    } else {
-                        log = String.format("%02d ? %05d\r\n", operand, lnum);
+                        textArea.append(log);
+                        memory[operand] = lnum;
+                        operand++;
+                        //값 다 넣었으면 항상 초기화??더있는지 확인
+                        log = "";
+                        lnum = 0;
+                        addArea.setText("");
                     }
-
-                    textArea.append(log);
-                    memory[operand] = lnum;
-                    operand++;
-                    //값 다 넣었으면 항상 초기화??더있는지 확인
-                    log = "";
-                    lnum = 0;
-                    addArea.setText("");
                 } catch (OutOfMemoryError om) {
                     textArea.append("\r\n***범위를 벗어났기 때문에 메모리를 초기화 하겠습니다.***\r\n");
                 }catch (Exception ex) {
@@ -313,7 +329,6 @@ public class NewSimple {
                 }
             }
         });
-
 
         addB.setBounds(303, 308, 97, 29);
         addB.setFont(new Font("맑은 고딕", Font.BOLD, 16));
