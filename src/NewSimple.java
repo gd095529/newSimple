@@ -40,6 +40,7 @@ public class NewSimple {
     private JButton debugB;
     private JScrollPane scrollPane;
     private JTextArea textArea;
+    private JTextArea resultArea;
     private JFrame debug;
     private JFrame result;
     private JTextField tinstructionCounter;
@@ -47,7 +48,7 @@ public class NewSimple {
     private JTextField toperationCode;
     private JTextField toperand;
     private JTextField taccumulators;
-    private JTextArea resultArea;
+
     private static final int MEMORYSIZE = 100;
 
     // 100개의 메모리 슬롯과 누산기 정의
@@ -211,7 +212,7 @@ public class NewSimple {
             //??메모리 보여주는거 다른작업끝난뒤
             printRegistersAndMemory(accumulator,instructionCounter,instructionRegister
                     , operationCode, operand, memory);
-
+            System.out.println("일단 한번 성공");
             //만약 branch 일경우 continue없애고 이거용 확인 변수생성, if문으로 아닌경우에만 넣기??
             instructionCounter++;//다음 메모리 위치
         }
@@ -269,15 +270,9 @@ public class NewSimple {
                     lnum = Integer.parseInt(log);
                     if (lnum == -99999) {
                         //완료했으니까 그냥 넘어가야지
-                        if (lnum >= 0) {
-                            log = String.format("%02d ? +%04d\r\n", operand, lnum);
-                        } else {
-                            log = String.format("%02d ? %05d\r\n", operand, lnum);
-                        }
-
-                        textArea.append(log);
-                        memory[operand] = lnum;
-                        operand++;
+                        
+                        textArea.append("데이터 저장");
+                        operand=0;
                         //값 다 넣었으면 항상 초기화??더있는지 확인
                         log = "";
                         lnum = 0;
@@ -310,11 +305,11 @@ public class NewSimple {
                     log = "";
                     lnum = 0;
                     addArea.setText("");
-                } catch (Exception ex) {
-                    textArea.append("\r\n정확한 값을 입력해주세요\r\n");
-
                 } catch (OutOfMemoryError om) {
                     textArea.append("\r\n***범위를 벗어났기 때문에 메모리를 초기화 하겠습니다.***\r\n");
+                }catch (Exception ex) {
+                    textArea.append("\r\n***에러발생 초기화후 다시 시작해주세요***\r\n");
+
                 }
             }
         });
@@ -325,7 +320,7 @@ public class NewSimple {
         addB.setForeground(new Color(0, 0, 0));
         frame.getContentPane().add(addB);
 
-        JTextArea resultArea = new JTextArea();
+        resultArea = new JTextArea();
         resultArea.setBounds(12, 347, 760, 288);
         frame.getContentPane().add(resultArea);
 
