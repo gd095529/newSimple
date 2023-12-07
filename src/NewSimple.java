@@ -60,6 +60,8 @@ public class NewSimple {
     String viewM = "";
     boolean checkBranch = false;
     private static Connection conn = null;
+    private static PreparedStatement pstmt = null;
+    private static ResultSet rs = null;
 
     // 모든 옵코드 정의
     private static final int READ = 10;
@@ -114,30 +116,146 @@ public class NewSimple {
         }
         viewM += String.format("\r\n\r\n");
         resultArea.setText(viewM);
+
+        insertNum(accumulator,instructionCounter,instructionRegister,operationCode,operand,viewM);
         //출력
     }
 
     //DB
-    public int selectAll(){
+    public String selectNum(int num){
         //DB connector
-        String sql = "select * from simple order by num asc";
+        String result = "";
+        String sql = "select * from simple where num = ? ";
         conn = makeDB();
-        try {
-            PreparedStatement pstmp = conn.prepareStatement(sql);
-            ResultSet rs = pstmp.executeQuery();
 
-            while(rs.next()){
-                //음 어케넣지??
+        try {
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1,num);
+            rs = pstmt.executeQuery();
+
+            if(rs.next()){
+                result = rs.getString("viewm");
             }
 
         }catch (Exception exception){
             textArea.append("DB오류");
+        }finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (pstmt != null) {
+                    pstmt.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-
-        int cnt = 0;
-        return cnt;
+        return result;
     }
 
+    public boolean alterNum(){
+        //DB connector
+        boolean result = false;
+        String sql = "alter table simple auto_increment = 1 ";
+        conn = makeDB();
+
+        try {
+            pstmt = conn.prepareStatement(sql);
+
+            result = pstmt.execute();
+
+        }catch (Exception exception){
+            textArea.append("DB오류");
+        }finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (pstmt != null) {
+                    pstmt.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+
+    public int deleteAll(){
+        //DB connector
+        int result = 0;
+        String sql = "delete from simple ";
+        conn = makeDB();
+
+        try {
+            pstmt = conn.prepareStatement(sql);
+
+            result = pstmt.executeUpdate();
+
+        }catch (Exception exception){
+            textArea.append("DB오류");
+        }finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (pstmt != null) {
+                    pstmt.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+
+    public int insertNum(int acc, int ic, int ir, int opc, int operand, String viewm){
+        //DB connector
+        int result = 0;
+        String sql = "insert into simple values (?,?,?,?,?,?,null)";
+        conn = makeDB();
+
+        try {
+            pstmt = conn.prepareStatement(sql);
+
+            pstmt.setInt(1,acc);
+            pstmt.setInt(2,ic);
+            pstmt.setInt(3,ir);
+            pstmt.setInt(4,opc);
+            pstmt.setInt(5,operand);
+            pstmt.setString(6,viewm);
+
+            result = pstmt.executeUpdate();
+
+        }catch (Exception exception){
+            textArea.append("DB오류");
+        }finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (pstmt != null) {
+                    pstmt.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
 
     //메모리 읽어버리는 메서드
     public void readMemory(){
@@ -302,6 +420,7 @@ public class NewSimple {
                         //입력 버튼 비활코드 (완료했으니 입력 비활 초기화 누르면 활성화되게)??
 
                         //리셋버튼으로 가서 클릭하면 입력 활성화?? 리셋 메서드 만들기
+
                     } else if (lnum < -9999 || lnum > +9999) {
                         //입력 버튼 비활??
 
@@ -325,7 +444,7 @@ public class NewSimple {
                     textArea.append("\r\n***범위를 벗어났기 때문에 메모리를 초기화 하겠습니다.***\r\n");
                 }catch (Exception ex) {
                     textArea.append("\r\n***에러발생 초기화후 다시 시작해주세요***\r\n");
-
+                    //초기화만 활성화 나머지 비활
                 }
             }
         });
