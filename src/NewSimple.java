@@ -3,19 +3,14 @@ import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
+import javax.swing.*;
 
 public class NewSimple {
     public static Connection makeDB() {
@@ -40,13 +35,13 @@ public class NewSimple {
 
     private JFrame frame;
     private JTextField addArea;
-    private JButton resultB;
     private JButton resetB;
-    private JButton debugB;
+    private JButton debugB; //클릭 동작 만들어야함??
     private JScrollPane scrollPane;
     private JTextArea textArea;
+    private JTextArea resultArea;
     private JFrame debug;
-    private JFrame result;
+    //왼쪽버튼 오른쪽 버튼 이름구분 필요, 동작 버튼 필요 ??
     private JTextField tinstructionCounter;
     private JTextField tinstructionRegister;
     private JTextField toperationCode;
@@ -57,7 +52,6 @@ public class NewSimple {
 
     // 100개의 메모리 슬롯과 누산기 정의
     int instructionCounter = 0;
-    int current_instruction = 0;
     int accumulator = 0;
     int memory[] = new int[MEMORYSIZE];
     int instructionRegister = 0;
@@ -65,6 +59,11 @@ public class NewSimple {
     int operand = 0;
     String log = "";
     int lnum = 0;
+    String viewM = "";
+    boolean checkBranch = false;
+    private static Connection conn = null;
+    private static PreparedStatement pstmt = null;
+    private static ResultSet rs = null;
 
     // 모든 옵코드 정의
     private static final int READ = 10;
@@ -88,47 +87,184 @@ public class NewSimple {
     }
 
     //메모리 화면 출력용
-    public static void printRegistersAndMemory(int accumulator,int instructionCounter
+    public void printRegistersAndMemory(int accumulator,int instructionCounter
             ,int instructionRegister, int operationCode, int operand, int[] memory) {
         //출력
-
-        System.out.println("REGISTERS :");
+        viewM = String.format("REGISTERS :\r\n");
         if(accumulator>=0)
-            System.out.printf("%-25s"+"+%04d\r\n","accumulator",accumulator);
+            viewM += String.format("%-27s"+"+%04d\r\n","accumulator",accumulator);
         else
-            System.out.printf("%-25s"+"%05d\r\n","accumulator",accumulator);
+            viewM += String.format("%-27s"+"%05d\r\n","accumulator",accumulator);
 
-        System.out.printf("%-28s"+"%02d\r\n","instructionCounter",instructionCounter);
-        System.out.printf("%-25s"+"+%4d\r\n","instructionRegister",instructionRegister);
-        System.out.printf("%-28s"+"%02d\r\n","operationCode",operationCode);
-        System.out.printf("%-28s"+"%02d\r\n","operand",operand);
-        System.out.println();
-        System.out.println("MEMORY :");
-        System.out.printf("%5s"," ");
+        viewM += String.format("%-31s"+"%02d\r\n","instructionCounter",instructionCounter);
+        viewM += String.format("%-25s"+"+%4d\r\n","instructionRegister",instructionRegister);
+        viewM += String.format("%-28s"+"%02d\r\n","operationCode",operationCode);
+        viewM += String.format("%-36s"+"%02d\r\n\r\n","operand",operand);
+
+        viewM += String.format("MEMORY :\r\n");
+        viewM += String.format("%5s"," ");
         for(int i =0; i<10; i++) {
-            System.out.printf("%-3s%5d"," ",i);
+            viewM += String.format("%-4s%9d"," ",i);
         }
 
         for(int i =0,j =0; i<MEMORYSIZE; i++,j++) {
             if(i%10==0)
-                System.out.printf("\r\n%5d",j);
+                viewM += String.format("\r\n%-2s%02d"," ",j);
 
             if(memory[i]>=0)
-                System.out.printf("%-3s+%04d"," ",memory[i]);
+                viewM += String.format("%-4s+%04d"," ",memory[i]);
             else
-                System.out.printf("%-3s%05d"," ",memory[i]);
+                viewM += String.format("%-4s%05d "," ",memory[i]);
         }
-        System.out.println("\r\n\r\n");
+        viewM += String.format("\r\n\r\n");
+        resultArea.setText(viewM);
+
+        insertNum(accumulator,instructionCounter,instructionRegister,operationCode,operand,viewM);
         //출력
     }
 
+    //DB
+    public String selectNum(int num){
+        //DB connector
+        String result = "";
+        String sql = "select * from simple where num = ? ";
+        conn = makeDB();
+
+        try {
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1,num);
+            rs = pstmt.executeQuery();
+
+            if(rs.next()){
+                result = rs.getString("viewm");
+            }
+
+        }catch (Exception exception){
+            textArea.append("DB오류");
+        }finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (pstmt != null) {
+                    pstmt.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+
+    public boolean alterNum(){
+        //DB connector
+        boolean result = false;
+        String sql = "alter table simple auto_increment = 1 ";
+        conn = makeDB();
+
+        try {
+            pstmt = conn.prepareStatement(sql);
+
+            result = pstmt.execute();
+
+        }catch (Exception exception){
+            textArea.append("DB오류");
+        }finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (pstmt != null) {
+                    pstmt.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+
+    public int deleteAll(){
+        //DB connector
+        int result = 0;
+        String sql = "delete from simple ";
+        conn = makeDB();
+
+        try {
+            pstmt = conn.prepareStatement(sql);
+
+            result = pstmt.executeUpdate();
+
+        }catch (Exception exception){
+            textArea.append("DB오류");
+        }finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (pstmt != null) {
+                    pstmt.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+
+    public int insertNum(int acc, int ic, int ir, int opc, int operand, String viewm){
+        //DB connector
+        int result = 0;
+        String sql = "insert into simple values (?,?,?,?,?,?,null)";
+        conn = makeDB();
+
+        try {
+            pstmt = conn.prepareStatement(sql);
+
+            pstmt.setInt(1,acc);
+            pstmt.setInt(2,ic);
+            pstmt.setInt(3,ir);
+            pstmt.setInt(4,opc);
+            pstmt.setInt(5,operand);
+            pstmt.setString(6,viewm);
+
+            result = pstmt.executeUpdate();
+
+        }catch (Exception exception){
+            textArea.append("DB오류");
+        }finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (pstmt != null) {
+                    pstmt.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
 
     //메모리 읽어버리는 메서드
     public void readMemory(){
         while(true) {
             instructionRegister = memory[instructionCounter]; //현재 실행문장
             if(instructionRegister<0)
-                System.out.println("*** Data position Error ***");
+                textArea.append("*** Data position Error ***");
 
             operationCode = instructionRegister/100;//앞 2개( 명령어)
             operand = instructionRegister%100;
@@ -136,17 +272,18 @@ public class NewSimple {
             switch(operationCode) {//명령어 확인
 
                 case READ :
-                    System.out.println("*** insert value, -9999<= value <= 9999 ***");
-                    //밑에 문장 스캔대신 생각 입력창 또하나 만들어야할듯??
-                    //memory[operand]=scan.nextInt();
+                    textArea.append("\r\n*** insert value, -9999<= value <= 9999 ***\r\n");
+                    memory[operand] = Integer.parseInt(JOptionPane.showInputDialog("정수를 입력하세요:"));
+                    textArea.append(operand+"번 주소에 값 "+memory[operand]+"를 저장");
+
                     if((memory[operand]<-9999||memory[operand]>+9999)) {
-                        System.out.println("*** because out of range, Simpletron execution terminated ***");
+                        textArea.append("\r\n*** because out of range, Simpletron execution terminated ***\r\n");
                         return;
                     }
                     break;
 
                 case WRITE :
-                    System.out.println("WRITE : "+memory[operand]+"\r\n");//데이터를
+                    textArea.append("\r\n"+operand+"번 주소의 값 출력 : "+memory[operand]+"\r\n");
                     break;
 
                 case LOAD :
@@ -167,8 +304,7 @@ public class NewSimple {
 
                 case DIVIDE :
                     if(memory[operand]==0) {//데이터가
-                        System.out.println("*** Attempt to divide by zero ***");
-
+                        textArea.append("\r\n*** Attempt to divide by zero ***\r\n");
                         return;
                     }
                     accumulator /= memory[operand];//데이터를
@@ -180,41 +316,44 @@ public class NewSimple {
 
                 case BRANCH :
                     instructionCounter = operand;//주소값으로 이동
-                    continue;
+                    checkBranch = true;
+                    break;
 
                 case BRANCHNEG :
                     if(accumulator<0) {
                         instructionCounter = operand;//주소값으로 이동
-                        continue;
+                        checkBranch = true;
+                        break;
                     }
                     break;
 
                 case BRANCHZERO :
                     if(accumulator == 0) {
                         instructionCounter = operand;//다음 실행문장 주소값으로 이동
-                        continue;
+                        checkBranch = true;
+                        break;
                     }
                     break;
 
                 case HALT :
-                    //?? 여기는 메모리 보여줘야함
-//                    printRegistersAndMemory(accumulator,instructionCounter,instructionRegister
-//                            , operationCode, operand, memory);
-                    System.out.println("*** Simpletron execution terminated ***");
-
+                    printRegistersAndMemory(accumulator,instructionCounter,instructionRegister
+                            , operationCode, operand, memory);
+                    textArea.append("\r\n*** Simpletron execution terminated ***\r\n");
                     return;
 
                 default :
-                    System.out.println("*** Doesn't exist operationCode ***");
-
+                    textArea.append("\r\n*** Doesn't exist operationCode ***\r\n");
                     return;
             }
 
-            //??메모리 보여주는거 다른작업끝난뒤
-//            printRegistersAndMemory(accumulator,instructionCounter,instructionRegister
-//                    , operationCode, operand, memory);
+            printRegistersAndMemory(accumulator,instructionCounter,instructionRegister
+                    , operationCode, operand, memory);
 
-            instructionCounter++;//다음 메모리 위치
+            if(checkBranch==false){
+                checkBranch=false;
+                instructionCounter++;//다음 메모리 위치
+            }
+
         }
     }
 
@@ -222,11 +361,10 @@ public class NewSimple {
      * Initialize the contents of the frame.
      */
     private void initialize() {
-        Connection conn = makeDB();
 
         frame = new JFrame();
         frame.getContentPane().setBackground(new Color(138, 43, 226));
-        frame.setBounds(100, 100, 800, 400);
+        frame.setBounds(100, 100, 800, 800);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().setLayout(null);
 
@@ -249,57 +387,69 @@ public class NewSimple {
         addArea.setColumns(10);
 
         JButton addB = new JButton("입력");
-//      addB.addKeyListener(new KeyAdapter() {
-//         @Override
-//         public void keyPressed(KeyEvent e) {
-//            if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-//               log = addArea.getText();
-//               textArea.append(log);
-//               log = "";
-//               addArea.setText("");
-//            }
-//         }
-//      });
-
-
-
-        addB.addMouseListener(new MouseAdapter() {
+        ActionListener actionListener = new ActionListener() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void actionPerformed(ActionEvent e) {
                 log = addArea.getText();
                 try {
                     lnum = Integer.parseInt(log);
-                    if(lnum == -99999) {
+                    if (lnum == -99999) {
+                        textArea.append("데이터 저장");
+                        //초기화할것들
+                        operand = 0;
+                        log = "";
+                        lnum = 0;
+                        addArea.setText("");
+
                         textArea.append("\r\n***프로그램 로딩 완료***\r\n***시작하겠습니다.***\r\n");
-                        //메모리 다 읽어버리기??
 
+                        readMemory();
 
-                        //입력 버튼 비활코드??
+                        //입력 버튼 비활 코드 (완료했으니 입력 비활 초기화 누르면 활성화되게)??
+                        // 이 부분에서 입력 버튼을 비활성화하는 코드를 넣을 수 있습니다.
 
-                        //리셋버튼으로 가서 클릭하면 입력 활성화??
-                    }
-                    else if(lnum< -9999 || lnum> +9999) {
-                        //초기화 작업 메서드 넣어주기??
+                        //리셋버튼으로 가서 클릭하면 입력 활성화?? 리셋 메서드 만들기
+                        // 리셋 버튼을 눌렀을 때 입력 버튼을 다시 활성화하는 코드를 넣을 수 있습니다.
+                        // 입력 버튼 비활성화
+                        addB.setEnabled(false);
+                    } else if (lnum < -9999 || lnum > +9999) {
+                        //입력 버튼 비활??
+                        // 범위를 벗어난 경우의 처리 내용입니다.
 
                         throw new OutOfMemoryError();
-                    }
+                    } else {
+                        if (lnum >= 0) {
+                            log = String.format("%02d ? +%04d\r\n", operand, lnum);
+                        } else {
+                            log = String.format("%02d ? %05d\r\n", operand, lnum);
+                        }
 
-                    if(lnum>=0) {
-                        log = String.format("%02d ? +%04d\r\n", operand, lnum);
-                    }else{
-                        log = String.format("%02d ? %05d\r\n", operand, lnum);
+                        textArea.append(log);
+                        memory[operand] = lnum;
+                        operand++;
+                        //값 다 넣었으면 항상 초기화??더있는지 확인
+                        log = "";
+                        lnum = 0;
+                        addArea.setText("");
                     }
-                    textArea.append(log);
-                    memory[operand] =lnum;
-                    operand++;
-                    //값 다 넣었으면 항상 초기화??더있는지 확인
-                    log = "";
-                    lnum = 0;
-                    addArea.setText("");
-                }catch(Exception ex) {
-                    textArea.append("\r\n정확한 값을 입력해주세요\r\n");
-                }catch(OutOfMemoryError om) {
+                } catch (OutOfMemoryError om) {
                     textArea.append("\r\n***범위를 벗어났기 때문에 메모리를 초기화 하겠습니다.***\r\n");
+                } catch (Exception ex) {
+                    textArea.append("\r\n***에러발생 초기화후 다시 시작해주세요***\r\n");
+                    //초기화만 활성화 나머지 비활
+                    // 에러 발생 시의 처리 내용입니다.
+                }
+            }
+        };
+
+        addB.addActionListener(actionListener);
+
+        // 키 이벤트 처리 (엔터 키)
+        addArea.addKeyListener((KeyListener) new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    actionListener.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
                 }
             }
         });
@@ -310,123 +460,73 @@ public class NewSimple {
         addB.setForeground(new Color(0, 0, 0));
         frame.getContentPane().add(addB);
 
-        resultB = new JButton("결과");
-        resultB.addMouseListener(new MouseAdapter() {
+        resultArea = new JTextArea();
+        resultArea.setBounds(12, 347, 760, 313);
+        frame.getContentPane().add(resultArea);
+
+        JButton LeftButton = new JButton("<-");
+        LeftButton.setForeground(Color.BLACK);
+        LeftButton.setFont(new Font("맑은 고딕", Font.BOLD, 20));
+        LeftButton.setBounds(12, 672, 97, 58);
+        LeftButton.setVisible(false);
+        frame.getContentPane().add(LeftButton);
+
+        JButton RightButton = new JButton("->");
+        RightButton.setForeground(Color.BLACK);
+        RightButton.setFont(new Font("맑은 고딕", Font.BOLD, 20));
+        RightButton.setBounds(121, 672, 97, 58);
+        RightButton.setVisible(false);
+        frame.getContentPane().add(RightButton);
+
+        JButton dbugB = new JButton("디버그");
+        dbugB.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                result = new JFrame();
-                result.getContentPane().setBackground(new Color(255, 204, 255));
-                result.setBounds(100, 100, 670, 646);
-                result.getContentPane().setLayout(null);
-                result.setVisible(true);
-
-                taccumulators = new JTextField();
-                taccumulators.setBounds(12, 35, 116, 21);
-                result.getContentPane().add(taccumulators);
-                taccumulators.setColumns(10);
-                taccumulators.setEditable(false);
-
-                tinstructionCounter = new JTextField();
-                tinstructionCounter.setColumns(10);
-                tinstructionCounter.setBounds(140, 35, 116, 21);
-                result.getContentPane().add(tinstructionCounter);
-                tinstructionCounter.setEditable(false);
-
-                tinstructionRegister = new JTextField();
-                tinstructionRegister.setColumns(10);
-                tinstructionRegister.setBounds(268, 35, 116, 21);
-                result.getContentPane().add(tinstructionRegister);
-                tinstructionRegister.setEditable(false);
-
-                toperationCode = new JTextField();
-                toperationCode.setColumns(10);
-                toperationCode.setBounds(396, 35, 116, 21);
-                result.getContentPane().add(toperationCode);
-                toperationCode.setEditable(false);
-
-                toperand = new JTextField();
-                toperand.setColumns(10);
-                toperand.setBounds(524, 35, 116, 21);
-                result.getContentPane().add(toperand);
-                toperand.setEditable(false);
-
-                JLabel lblNewLabel = new JLabel("accumulator");
-                lblNewLabel.setBounds(32, 21, 88, 15);
-                result.getContentPane().add(lblNewLabel);
-
-                JLabel lblInstructioncounter = new JLabel("instructionCounter");
-                lblInstructioncounter.setBounds(140, 21, 116, 15);
-                result.getContentPane().add(lblInstructioncounter);
-
-                JLabel lblInstructionregister = new JLabel("instructionRegister");
-                lblInstructionregister.setBounds(268, 21, 130, 15);
-                result.getContentPane().add(lblInstructionregister);
-
-                JLabel lblOperationcode = new JLabel("operationCode");
-                lblOperationcode.setBounds(411, 21, 88, 15);
-                result.getContentPane().add(lblOperationcode);
-
-                JLabel lblOperand = new JLabel("operand");
-                lblOperand.setBounds(552, 21, 88, 15);
-                result.getContentPane().add(lblOperand);
-
-                JButton btnNewButton = new JButton("<-");
-                btnNewButton.setFont(new Font("맑은 고딕", Font.BOLD, 30));
-                btnNewButton.setBounds(31, 498, 97, 67);
-                result.getContentPane().add(btnNewButton);
-
-                JButton btnNewButton_1 = new JButton("->");
-                btnNewButton_1.addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                    }
-                });
-                btnNewButton_1.setFont(new Font("맑은 고딕", Font.BOLD, 30));
-                btnNewButton.setBounds(31, 498, 97, 67);
-                result.getContentPane().add(btnNewButton);
-
-                btnNewButton_1.setBounds(140, 498, 97, 67);
-                result.getContentPane().add(btnNewButton_1);
-
-                JScrollPane scrollPane = new JScrollPane();
-                scrollPane.setBounds(22, 66, 606, 411);
-                result.getContentPane().add(scrollPane);
-
-                JTextArea dumArea = new JTextArea();
-                scrollPane.setViewportView(dumArea);
+                LeftButton.setVisible(true);
+                RightButton.setVisible(true);
+                addB.setVisible(true);
             }
         });
-        resultB.setBounds(675, 308, 97, 29);
-        resultB.setFont(new Font("맑은 고딕", Font.BOLD, 16));
-        resultB.setForeground(new Color(0, 0, 0));
-        frame.getContentPane().add(resultB);
+        dbugB.setFont(new Font("맑은 고딕", Font.BOLD, 20));
+        dbugB.setBounds(636, 672, 136, 58);
+        frame.getContentPane().add(dbugB);
 
         resetB = new JButton("초기화");
-        resetB.setBounds(566, 308, 97, 29);
+        resetB.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                // 주요 변수들 초기화
+                accumulator = 0;
+                instructionCounter = 0;
+                instructionRegister = 0;
+                operationCode = 0;
+                operand = 0;
+                log = "";
+                lnum = 0;
+                viewM = "";
+                checkBranch = false;
+                addB.setEnabled(true);
+
+                // 메모리 초기화
+                for (int i = 0; i < MEMORYSIZE; i++) {
+                    memory[i] = 0;
+                }
+
+                // 화면 초기화
+                textArea.setText("*** 심플트론에 오신 것을 환영합니다 ***\n" +
+                        "*** 하나의 명령을 한 번에 추가 버튼을 클릭하여 입력하십시오. ***\n" +
+                        "*** 완료 버튼을 클릭한 후 실행하여 프로그램을 실행할 수 있습니다. ***\n" +
+                        "*** 프로그램을 진행하려면 다음 버튼을 클릭할 수 있습니다. ***\n\n");
+                resultArea.setText(""); // 결과 텍스트 영역 초기화
+            }
+        });
+
+        resetB.setBounds(412, 308, 97, 29);
         resetB.setFont(new Font("맑은 고딕", Font.BOLD, 16));
         resetB.setForeground(new Color(0, 0, 0));
         frame.getContentPane().add(resetB);
-
-        debugB = new JButton("디버그");
-        debugB.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-            }
-        });
-        debugB.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                debug = new JFrame();
-                debug.getContentPane().setBackground(new Color(138, 43, 226));
-                debug.setBounds(100, 100, 800, 600);
-                debug.getContentPane().setLayout(null);
-                debug.setVisible(true);
-            }
-        });
-        debugB.setBounds(457, 308, 97, 29);
-        debugB.setFont(new Font("맑은 고딕", Font.BOLD, 16));
-        debugB.setForeground(new Color(0, 0, 0));
-        frame.getContentPane().add(debugB);
-
     }
+
     /**
      * Launch the application.
      */
