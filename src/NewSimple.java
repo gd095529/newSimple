@@ -19,7 +19,7 @@ public class NewSimple {
         Statement stmt = null;
         String url = "jdbc:mysql://localhost:3306/micom";
         String id = "root";
-        String password = "1324";
+        String password = "root";
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");// 유연한 클래스부르기
             System.out.println("드라이버 적재 성공");
@@ -391,6 +391,62 @@ public class NewSimple {
         frame.getContentPane().add(addArea);
         addArea.setColumns(10);
 
+        JButton LeftButton = new JButton("<-");
+
+        LeftButton.setForeground(Color.BLACK);
+        LeftButton.setFont(new Font("맑은 고딕", Font.BOLD, 20));
+        LeftButton.setBounds(12, 720, 97, 29);
+        LeftButton.setVisible(false);
+        frame.getContentPane().add(LeftButton);
+
+        JButton RightButton = new JButton("->");
+        RightButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                dbugNum++;
+                if(dbugNum==dbugLastNum) {
+                    RightButton.setVisible(false);
+                }
+                resultArea.setText(selectNum(dbugNum));
+                LeftButton.setVisible(true);
+            }
+        });
+        LeftButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                dbugNum--;
+                if(dbugNum==1) {
+                    LeftButton.setVisible(false);
+                }
+                resultArea.setText(selectNum(dbugNum));
+                RightButton.setVisible(true);
+            }
+        });
+        RightButton.setForeground(Color.BLACK);
+        RightButton.setFont(new Font("맑은 고딕", Font.BOLD, 20));
+        RightButton.setBounds(121, 720, 97, 29);
+        RightButton.setVisible(false);
+        frame.getContentPane().add(RightButton);
+
+        JButton dbugB = new JButton("디버그");
+        // 디버그 버튼을 비활성화할 때 클릭 이벤트 리스너를 제거하는 코드
+        dbugB.setEnabled(false);
+        for (ActionListener al : dbugB.getActionListeners()) {
+            dbugB.removeActionListener(al);
+        }
+        dbugB.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // 디버그 버튼 클릭 시 실행할 동작
+                LeftButton.setVisible(false);
+                RightButton.setVisible(true);
+                resultArea.setText(selectNum(dbugNum));
+            }
+        });
+        dbugB.setFont(new Font("맑은 고딕", Font.BOLD, 20));
+        dbugB.setBounds(636, 720, 136, 29);
+        frame.getContentPane().add(dbugB);
+
         JButton addB = new JButton("입력");
         ActionListener actionListener = new ActionListener() {
             @Override
@@ -417,6 +473,7 @@ public class NewSimple {
                         // 리셋 버튼을 눌렀을 때 입력 버튼을 다시 활성화하는 코드를 넣을 수 있습니다.
                         // 입력 버튼 비활성화
                         addB.setEnabled(false);
+                        dbugB.setEnabled(true);
                     } else if (lnum < -9999 || lnum > +9999) {
                         //입력 버튼 비활??
                         // 범위를 벗어난 경우의 처리 내용입니다.
@@ -471,56 +528,7 @@ public class NewSimple {
         resultArea.setEditable(false);
         frame.getContentPane().add(resultArea);
 
-        JButton LeftButton = new JButton("<-");
 
-        LeftButton.setForeground(Color.BLACK);
-        LeftButton.setFont(new Font("맑은 고딕", Font.BOLD, 20));
-        LeftButton.setBounds(12, 720, 97, 29);
-        LeftButton.setVisible(false);
-        frame.getContentPane().add(LeftButton);
-
-        JButton RightButton = new JButton("->");
-        RightButton.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                dbugNum++;
-                if(dbugNum==dbugLastNum) {
-                    RightButton.setVisible(false);
-                }
-                resultArea.setText(selectNum(dbugNum));
-                LeftButton.setVisible(true);
-            }
-        });
-        LeftButton.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                dbugNum--;
-                if(dbugNum==1) {
-                    LeftButton.setVisible(false);
-                }
-                resultArea.setText(selectNum(dbugNum));
-                RightButton.setVisible(true);
-            }
-        });
-        RightButton.setForeground(Color.BLACK);
-        RightButton.setFont(new Font("맑은 고딕", Font.BOLD, 20));
-        RightButton.setBounds(121, 720, 97, 29);
-        RightButton.setVisible(false);
-        frame.getContentPane().add(RightButton);
-
-        JButton dbugB = new JButton("디버그");
-        dbugB.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {//dbugB클릭
-                LeftButton.setVisible(false);
-                RightButton.setVisible(true);
-
-                resultArea.setText(selectNum(dbugNum));
-            }
-        });
-        dbugB.setFont(new Font("맑은 고딕", Font.BOLD, 20));
-        dbugB.setBounds(636, 720, 136, 29);
-        frame.getContentPane().add(dbugB);
 
         resetB = new JButton("초기화");
         resetB.addMouseListener(new MouseAdapter() {
@@ -537,6 +545,9 @@ public class NewSimple {
                 viewM = "";
                 checkBranch = false;//??
                 addB.setEnabled(true);
+                dbugB.setEnabled(false);
+                LeftButton.setVisible(false);
+                RightButton.setVisible(false);
 
                 deleteAll();
                 alterNum();
