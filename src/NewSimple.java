@@ -59,6 +59,8 @@ public class NewSimple {
     int operand = 0;
     String log = "";
     int lnum = 0;
+    int dbugNum = 1;
+    int dbugLastNum=0;
     String viewM = "";
     boolean checkBranch = false;
     private static Connection conn = null;
@@ -104,7 +106,7 @@ public class NewSimple {
         viewM += String.format("MEMORY :\r\n");
         viewM += String.format("%5s"," ");
         for(int i =0; i<10; i++) {
-            viewM += String.format("%-4s%9d"," ",i);
+            viewM += String.format("%-4s%7d"," ",i);
         }
 
         for(int i =0,j =0; i<MEMORYSIZE; i++,j++) {
@@ -120,6 +122,7 @@ public class NewSimple {
         resultArea.setText(viewM);
 
         insertNum(accumulator,instructionCounter,instructionRegister,operationCode,operand,viewM);
+        dbugLastNum++;
         //출력
     }
 
@@ -140,7 +143,7 @@ public class NewSimple {
             }
 
         }catch (Exception exception){
-            textArea.append("DB오류");
+            textArea.append("\r\nDB오류");
         }finally {
             try {
                 if (rs != null) {
@@ -171,7 +174,7 @@ public class NewSimple {
             result = pstmt.execute();
 
         }catch (Exception exception){
-            textArea.append("DB오류");
+            textArea.append("\r\nDB오류");
         }finally {
             try {
                 if (rs != null) {
@@ -202,7 +205,7 @@ public class NewSimple {
             result = pstmt.executeUpdate();
 
         }catch (Exception exception){
-            textArea.append("DB오류");
+            textArea.append("\r\nDB오류");
         }finally {
             try {
                 if (rs != null) {
@@ -240,7 +243,7 @@ public class NewSimple {
             result = pstmt.executeUpdate();
 
         }catch (Exception exception){
-            textArea.append("DB오류");
+            textArea.append("\r\nDB오류");
         }finally {
             try {
                 if (rs != null) {
@@ -375,6 +378,8 @@ public class NewSimple {
         textArea = new JTextArea();
         textArea.setFont(new Font("맑은 고딕", Font.BOLD, 14));
         textArea.setEditable(false);
+        deleteAll();
+        alterNum();
         textArea.setText("*** 심플트론에 오신 것을 환영합니다 ***\n" + "*** 하나의 명령을 한 번에 추가 버튼을 클릭하여 입력하십시오. ***\n"
                 + "*** 완료 버튼을 클릭한 후 실행하여 프로그램을 실행할 수 있습니다. ***\n" + "*** 프로그램을 진행하려면 다음 버튼을 클릭할 수 있습니다. ***\n\n");
         scrollPane.setViewportView(textArea);
@@ -400,7 +405,7 @@ public class NewSimple {
                         log = "";
                         lnum = 0;
                         addArea.setText("");
-
+                        addB.setEnabled(false);
                         textArea.append("\r\n***프로그램 로딩 완료***\r\n***시작하겠습니다.***\r\n");
 
                         readMemory();
@@ -436,7 +441,7 @@ public class NewSimple {
                     textArea.append("\r\n***범위를 벗어났기 때문에 메모리를 초기화 하겠습니다.***\r\n");
                 } catch (Exception ex) {
                     textArea.append("\r\n***에러발생 초기화후 다시 시작해주세요***\r\n");
-                    //초기화만 활성화 나머지 비활
+                    //초기화만 활성화 나머지 비활??
                     // 에러 발생 시의 처리 내용입니다.
                 }
             }
@@ -461,40 +466,66 @@ public class NewSimple {
         frame.getContentPane().add(addB);
 
         resultArea = new JTextArea();
-        resultArea.setBounds(12, 347, 760, 313);
+        resultArea.setBounds(12, 347, 760, 365);
+        resultArea.setFont(new Font("맑은 고딕", Font.BOLD, 13));
+        resultArea.setEditable(false);
         frame.getContentPane().add(resultArea);
 
         JButton LeftButton = new JButton("<-");
+
         LeftButton.setForeground(Color.BLACK);
         LeftButton.setFont(new Font("맑은 고딕", Font.BOLD, 20));
-        LeftButton.setBounds(12, 672, 97, 58);
+        LeftButton.setBounds(12, 720, 97, 29);
         LeftButton.setVisible(false);
         frame.getContentPane().add(LeftButton);
 
         JButton RightButton = new JButton("->");
+        RightButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                dbugNum++;
+                if(dbugNum==dbugLastNum) {
+                    RightButton.setVisible(false);
+                }
+                resultArea.setText(selectNum(dbugNum));
+                LeftButton.setVisible(true);
+            }
+        });
+        LeftButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                dbugNum--;
+                if(dbugNum==1) {
+                    LeftButton.setVisible(false);
+                }
+                resultArea.setText(selectNum(dbugNum));
+                RightButton.setVisible(true);
+            }
+        });
         RightButton.setForeground(Color.BLACK);
         RightButton.setFont(new Font("맑은 고딕", Font.BOLD, 20));
-        RightButton.setBounds(121, 672, 97, 58);
+        RightButton.setBounds(121, 720, 97, 29);
         RightButton.setVisible(false);
         frame.getContentPane().add(RightButton);
 
         JButton dbugB = new JButton("디버그");
         dbugB.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
-                LeftButton.setVisible(true);
+            public void mouseClicked(MouseEvent e) {//dbugB클릭
+                LeftButton.setVisible(false);
                 RightButton.setVisible(true);
-                addB.setVisible(true);
+
+                resultArea.setText(selectNum(dbugNum));
             }
         });
         dbugB.setFont(new Font("맑은 고딕", Font.BOLD, 20));
-        dbugB.setBounds(636, 672, 136, 58);
+        dbugB.setBounds(636, 720, 136, 29);
         frame.getContentPane().add(dbugB);
 
         resetB = new JButton("초기화");
         resetB.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mouseClicked(MouseEvent e) {//resetB클릭
                 // 주요 변수들 초기화
                 accumulator = 0;
                 instructionCounter = 0;
@@ -504,8 +535,11 @@ public class NewSimple {
                 log = "";
                 lnum = 0;
                 viewM = "";
-                checkBranch = false;
+                checkBranch = false;//??
                 addB.setEnabled(true);
+
+                deleteAll();
+                alterNum();
 
                 // 메모리 초기화
                 for (int i = 0; i < MEMORYSIZE; i++) {
