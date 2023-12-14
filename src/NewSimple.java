@@ -33,7 +33,7 @@ public class NewSimple {
         String id = "root";
         String password = "1324";
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            Class.forName("com.mysql.cj.jdbc.Driver");// 유연한 클래스부르기
             System.out.println("드라이버 적재 성공");
             con = DriverManager.getConnection(url, id, password);
             System.out.println("데이터베이스 연결 성공");
@@ -48,11 +48,12 @@ public class NewSimple {
     private JFrame frame;
     private JTextField addArea;
     private JButton resetB;
-    private JButton debugB;
+    private JButton debugB; //클릭 동작 만들어야함??
     private JScrollPane scrollPane;
     private JTextArea textArea;
     private JTextArea resultArea;
     private JFrame debug;
+    //왼쪽버튼 오른쪽 버튼 이름구분 필요, 동작 버튼 필요 ??
     private JTextField tinstructionCounter;
     private JTextField tinstructionRegister;
     private JTextField toperationCode;
@@ -285,7 +286,7 @@ public class NewSimple {
         while(true) {
             instructionRegister = memory[instructionCounter]; //현재 실행문장
             if(instructionRegister<0)
-                textArea.append("*** Data position Error ***");
+                textArea.append("*** 데이터 오류 ***");
 
             operationCode = instructionRegister/100;//앞 2개( 명령어)
             operand = instructionRegister%100;
@@ -293,12 +294,12 @@ public class NewSimple {
             switch(operationCode) {//명령어 확인
 
                 case READ :
-                    textArea.append("\r\n*** insert value, -9999<= value <= 9999 ***\r\n");
+                    textArea.append("\r\n*** -9999~9999 값만 삽입하세요. ***\r\n");
                     memory[operand] = Integer.parseInt(JOptionPane.showInputDialog("정수를 입력하세요:"));
                     textArea.append(operand+"번 주소에 값 "+memory[operand]+"를 저장");
 
                     if((memory[operand]<-9999||memory[operand]>+9999)) {
-                        textArea.append("\r\n*** because out of range, Simpletron execution terminated ***\r\n");
+                        textArea.append("\r\n*** 범위를 벗어났기 때문에, Simpletron 실행을 종료합니다. ***\r\n");
                         return;
                     }
                     break;
@@ -325,7 +326,7 @@ public class NewSimple {
 
                 case DIVIDE :
                     if(memory[operand]==0) {//데이터가
-                        textArea.append("\r\n*** Attempt to divide by zero ***\r\n");
+                        textArea.append("\r\n*** 0으로 나누기 시도 ***\r\n");
                         return;
                     }
                     accumulator /= memory[operand];//데이터를
@@ -359,11 +360,11 @@ public class NewSimple {
                 case HALT :
                     printRegistersAndMemory(accumulator,instructionCounter,instructionRegister
                             , operationCode, operand, memory);
-                    textArea.append("\r\n*** Simpletron execution terminated ***\r\n");
+                    textArea.append("\r\n*** 심플트론 실행이 종료되었습니다. ***\r\n");
                     return;
 
                 default :
-                    textArea.append("\r\n*** Doesn't exist operationCode ***\r\n");
+                    textArea.append("\r\n*** 존재하지 않는 작업코드입니다. ***\r\n");
                     return;
             }
 
@@ -379,7 +380,7 @@ public class NewSimple {
     }
 
     /**
-     * Initialize the contents of the frame.
+     * Initialize the contents of the frame. // 프레임 내용 초기화
      */
     private void initialize() {
 
@@ -484,16 +485,14 @@ public class NewSimple {
 
                         readMemory();
 
-                        //입력 버튼 비활 코드 (완료했으니 입력 비활 초기화 누르면 활성화되게)??
+                        //입력 버튼 비활 코드
                         // 이 부분에서 입력 버튼을 비활성화하는 코드를 넣을 수 있습니다.
 
-                        //리셋버튼으로 가서 클릭하면 입력 활성화?? 리셋 메서드 만들기
                         // 리셋 버튼을 눌렀을 때 입력 버튼을 다시 활성화하는 코드를 넣을 수 있습니다.
                         // 입력 버튼 비활성화
                         addB.setEnabled(false);
                         dbugB.setEnabled(true);
                     } else if (lnum < -9999 || lnum > +9999) {
-                        //입력 버튼 비활??
                         // 범위를 벗어난 경우의 처리 내용입니다.
 
                         throw new OutOfMemoryError();
@@ -507,7 +506,6 @@ public class NewSimple {
                         textArea.append(log);
                         memory[operand] = lnum;
                         operand++;
-                        //값 다 넣었으면 항상 초기화??더있는지 확인
                         log = "";
                         lnum = 0;
                         addArea.setText("");
@@ -516,7 +514,6 @@ public class NewSimple {
                     textArea.append("\r\n***범위를 벗어났기 때문에 메모리를 초기화 하겠습니다.***\r\n");
                 } catch (Exception ex) {
                     textArea.append("\r\n***에러발생 초기화후 다시 시작해주세요***\r\n");
-                    //초기화만 활성화 나머지 비활??
                     // 에러 발생 시의 처리 내용입니다.
                 }
             }
@@ -561,7 +558,7 @@ public class NewSimple {
                 log = "";
                 lnum = 0;
                 viewM = "";
-                checkBranch = false;//??
+                checkBranch = false;
                 addB.setEnabled(true);
                 dbugB.setEnabled(false);
                 LeftButton.setVisible(false);
@@ -590,7 +587,7 @@ public class NewSimple {
     }
 
     /**
-     * Launch the application.
+     * Launch the application. //프로젝트를 실행하여 어플리케이션 시작
      */
     public static void main(String[] args) {
         EventQueue.invokeLater(new Runnable() {
