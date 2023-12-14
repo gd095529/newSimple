@@ -1,3 +1,5 @@
+package swing;
+
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -8,9 +10,19 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
-import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
 public class NewSimple {
     public static Connection makeDB() {
@@ -19,7 +31,7 @@ public class NewSimple {
         Statement stmt = null;
         String url = "jdbc:mysql://localhost:3306/micom";
         String id = "root";
-        String password = "root";
+        String password = "1324";
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");// 유연한 클래스부르기
             System.out.println("드라이버 적재 성공");
@@ -82,13 +94,19 @@ public class NewSimple {
     private static final int HALT = 43;
 
     /**
-     * Create the application.
+     * Create the application. //어플리케이션 만들기
      */
     public NewSimple() {
         initialize();
     }
 
     //메모리 화면 출력용
+    //accumulator           (누산기)산술 및 논리 연산을 수행하는 데에 사용되며, 연산 결과를 저장
+    //printRegistersAndMemory 실행 중인 프로그램의 레지스터와 메모리 상태를 출력
+    //instructionCounter     명령어의 실행을 추적하거나 세는 데 사용되는 변수또는 레지스터
+    //instructionRegister     실행 중인 명령어를 저장하는 레지스터
+    //operationCode           연산을 식별
+    //operand              연산이나 동작을 수행하기 위해 사용되는 값
     public void printRegistersAndMemory(int accumulator,int instructionCounter
             ,int instructionRegister, int operationCode, int operand, int[] memory) {
         //출력
@@ -99,9 +117,9 @@ public class NewSimple {
             viewM += String.format("%-27s"+"%05d\r\n","accumulator",accumulator);
 
         viewM += String.format("%-31s"+"%02d\r\n","instructionCounter",instructionCounter);
-        viewM += String.format("%-25s"+"+%4d\r\n","instructionRegister",instructionRegister);
+        viewM += String.format("%-27s"+"+%4d\r\n","instructionRegister",instructionRegister);
         viewM += String.format("%-28s"+"%02d\r\n","operationCode",operationCode);
-        viewM += String.format("%-36s"+"%02d\r\n\r\n","operand",operand);
+        viewM += String.format("%-33s"+"%02d\r\n\r\n","operand",operand);
 
         viewM += String.format("MEMORY :\r\n");
         viewM += String.format("%5s"," ");
@@ -166,6 +184,7 @@ public class NewSimple {
         //DB connector
         boolean result = false;
         String sql = "alter table simple auto_increment = 1 ";
+        //alter table [테이블명] auto_increment =[시작할 값 1] 키값 자동으로 증가
         conn = makeDB();
 
         try {
@@ -174,7 +193,7 @@ public class NewSimple {
             result = pstmt.execute();
 
         }catch (Exception exception){
-            textArea.append("\r\nDB오류");
+            textArea.append("\r\nDB오류"); //textArea.append 특정내용 추가
         }finally {
             try {
                 if (rs != null) {
@@ -227,7 +246,7 @@ public class NewSimple {
     public int insertNum(int acc, int ic, int ir, int opc, int operand, String viewm){
         //DB connector
         int result = 0;
-        String sql = "insert into simple values (?,?,?,?,?,?,null)";
+        String sql = "insert into simple values (?,?,?,?,?,?,null)"; //여러개의 데이터 한 테이블에 한번에 insert
         conn = makeDB();
 
         try {
@@ -380,8 +399,8 @@ public class NewSimple {
         textArea.setEditable(false);
         deleteAll();
         alterNum();
-        textArea.setText("*** 심플트론에 오신 것을 환영합니다 ***\n" + "*** 하나의 명령을 한 번에 추가 버튼을 클릭하여 입력하십시오. ***\n"
-                + "*** 완료 버튼을 클릭한 후 실행하여 프로그램을 실행할 수 있습니다. ***\n" + "*** 프로그램을 진행하려면 다음 버튼을 클릭할 수 있습니다. ***\n\n");
+        textArea.setText("*** 심플트론에 오신 것을 환영합니다 ***\n" + "*** 하나의 명령을 한 번에 입력 버튼을 클릭하여 입력하십시오. ***\n"
+                + "*** -99999를 입력하면 프로그램이 시작됩니다. ***\n\n");
         scrollPane.setViewportView(textArea);
 
         addArea = new JTextField();
@@ -559,9 +578,8 @@ public class NewSimple {
 
                 // 화면 초기화
                 textArea.setText("*** 심플트론에 오신 것을 환영합니다 ***\n" +
-                        "*** 하나의 명령을 한 번에 추가 버튼을 클릭하여 입력하십시오. ***\n" +
-                        "*** 완료 버튼을 클릭한 후 실행하여 프로그램을 실행할 수 있습니다. ***\n" +
-                        "*** 프로그램을 진행하려면 다음 버튼을 클릭할 수 있습니다. ***\n\n");
+                        "*** 하나의 명령을 한 번에 입력 버튼을 클릭하여 입력하십시오. ***\n" +
+                        "*** -99999를 입력하면 프로그램이 시작됩니다. ***\n\n");
                 resultArea.setText(""); // 결과 텍스트 영역 초기화
             }
         });
