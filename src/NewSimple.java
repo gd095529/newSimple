@@ -33,7 +33,7 @@ public class NewSimple {
         String id = "root";
         String password = "1324";
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");// 유연한 클래스부르기
+            Class.forName("com.mysql.cj.jdbc.Driver");
             System.out.println("드라이버 적재 성공");
             con = DriverManager.getConnection(url, id, password);
             System.out.println("데이터베이스 연결 성공");
@@ -48,12 +48,11 @@ public class NewSimple {
     private JFrame frame;
     private JTextField addArea;
     private JButton resetB;
-    private JButton debugB; //클릭 동작 만들어야함??
+    private JButton debugB;
     private JScrollPane scrollPane;
     private JTextArea textArea;
     private JTextArea resultArea;
     private JFrame debug;
-    //왼쪽버튼 오른쪽 버튼 이름구분 필요, 동작 버튼 필요 ??
     private JTextField tinstructionCounter;
     private JTextField tinstructionRegister;
     private JTextField toperationCode;
